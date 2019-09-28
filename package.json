@@ -1,0 +1,42 @@
+{
+  "name": "@veriz/wynk_data",
+  "version": "1.0.0",
+  "description": "Wynk data",
+  "main": "index.js",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "tsc",
+    "buildlocal": "tsc && xcopy /Q /Y /E dist\\* ..\\wynk_backend\\node_modules\\@veriz\\wynk_data\\dist && xcopy /Q /Y /E dist\\* ..\\wynk_accredited_backend\\node_modules\\@veriz\\wynk_data\\dist  && xcopy /Q /Y /E dist\\* ..\\wynk_backend_lambda\\2-layer-data\\nodejs\\node_modules\\@veriz\\wynk_data\\dist",
+    "buildlocalMac": "tsc && cp -R dist/* ../wynk_backend/node_modules/@veriz/wynk_data/dist && cp -R dist/* ../wynk_accredited_backend/node_modules/@veriz/wynk_data/dist && cp -R dist/* ../wynk_backend_lambda/2-layer-data/nodejs/node_modules/@veriz/wynk_data/dist",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tslint": "tslint --force --format json --config tslint.json --out issues.json --project tsconfig.json"
+  },
+  "keywords": [],
+  "author": "Veriz Tecnologia",
+  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@types/bluebird": "^3.5.27",
+    "@types/node": "^8.10.49",
+    "bluebird": "^3.5.5",
+    "dotenv": "^8.1.0",
+    "mongoose": "^5.7.0",
+    "tedious": "^2.7.1",
+    "tedious-connection-pool": "^1.0.5",
+    "tedious-promises": "^0.4.1",
+    "unescape": "^1.0.1"
+  },
+  "devDependencies": {
+    "typescript": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/B2CExpress/wynk_data.git"
+  },
+  "bugs": {
+    "url": "https://github.com/B2CExpress/wynk_data/issues"
+  },
+  "homepage": "https://github.com/B2CExpress/wynk_data#readme"
+}
