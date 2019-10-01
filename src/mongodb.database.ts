@@ -21,11 +21,21 @@ export class MongoDbDatabase extends Database {
         super(config);
     }
 
+    getConnection() {
+        return this.connection;
+    }
+
     connect() {
         this.connection = new Mongoose();
-        this.connection.connect("mongodb://" + this.config.server + ":" +
-                                    this.config.options.port + "/" +
-                                    this.config.options.database, { useUnifiedTopology: true, useNewUrlParser: true });
+        this.connection.connect("mongodb://" + this.config.userName + ":" + this.config.password + "@" +
+            this.config.server + ":" + this.config.options.port + "/" + this.config.options.database + '?authSource=admin', { useUnifiedTopology: true, useNewUrlParser: true }).then(
+            () => {
+                console.log('Successful MongoDB connection establishments');
+            },
+            err => {
+                console.log('Error connection to mongodb => ' + err);
+            }
+        );
     }
 
     end() {
@@ -33,13 +43,17 @@ export class MongoDbDatabase extends Database {
         process.exit(0);
     }
 
+    getModel(schema: Schema) {
+        let model = this.connection.models[schema.Alias];
+        if (!model) {
+            model = this.connection.model(schema.Alias, schema.ProviderSchema, schema.TableName);
+        }
+        return model;
+    }
+
     execQuery(request: SqlCommand, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
         return new Promise((resolve, reject) => {
-            let model = this.connection.models[modelParam.Schema.Alias];
-            if (!model) {
-                model = this.connection.model(modelParam.Schema.Alias, modelParam.Schema.ProviderSchema, modelParam.Schema.TableName);
-            }
-
+            let model = this.getModel(modelParam.Schema);
             let findParams = this.setParameters(modelParam, request.command);
 
             model.find(findParams, (error, result) => {
@@ -87,13 +101,34 @@ export class MongoDbDatabase extends Database {
 
     getSchema(schema: Schema) {
         let newSchema = {};
+        let fieldsList = '';
+        let identityColumn;
         Object.keys(schema.Columns).forEach(prop => {
             if(prop !== '___ColumnsToModel') {
-                newSchema[schema.Columns[prop].name] = this.getType(schema.Columns[prop].type);
+                newSchema[schema.Columns[prop].name] = {
+                    name: schema.Columns[prop].name,
+                    alias: prop,
+                    type: this.getType(schema.Columns[prop].type)
+                };
+                if (schema.Columns[prop].identity === true) {
+                    identityColumn = newSchema[schema.Columns[prop].name]; //sssschema.Columns[prop];
+                }
+                fieldsList += schema.Columns[prop].name + ' ';
             }
         });
-        return new MongoSchema(newSchema);
-
+        let mongoSchema = new MongoSchema(newSchema, { strict: false });
+        mongoSchema.identity = identityColumn;
+        mongoSchema.set('toObject', { virtuals: true });
+        mongoSchema.options.toObject.hide = fieldsList;
+        mongoSchema.options.toObject.transform = function (doc, ret, options) {
+            if (options.hide) {
+                options.hide.split(' ').forEach(function (prop) {
+                    delete ret[prop];
+                });
+            }
+            return ret;
+        };
+        return mongoSchema;
     }
 
 }

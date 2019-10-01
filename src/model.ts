@@ -30,6 +30,25 @@ export class Model {
         return this.Schema.Database.exec<T>(request, this, pageSize, pageNumber);
     }
 
+    toObject() {
+        const obj = {};
+        Object.keys(this.Schema.Columns).forEach(prop => {
+                if (prop !== "___ColumnsToModel") {
+                    obj[prop] = this[prop];
+                }
+            }
+        );
+        return obj;
+    }
+
+    copyFrom(source: any) {
+        Object.keys(source).forEach(prop => {
+            if (this.hasOwnProperty(prop)) {
+                this[prop] = source[prop];
+            }
+        });
+    }
+
     public IsModified(propertyName: string): boolean {
         return (this.ChangedList[propertyName] === true);
     }

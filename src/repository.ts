@@ -1,43 +1,16 @@
 import * as Promise from 'bluebird';
 import {Model} from './model';
 
-export class SqlRepository<T extends Model> {
+export abstract class Repository<T extends Model> {
 
-    insert(item: T): Promise<T> {
-        return new Promise<T>((resolve, reject) => {
-            item.validate()
-                .then(() => {
-                    item.Schema.Database.exec<T>(item.Schema.Commands.insert, item, 0, 0)
-                        .then((row) => {
-                            if (row) {
-                                resolve(row);
-                            } else {
-                                resolve(item);
-                            }
-                        })
-                        .catch((error) =>{
-                            reject(error);
-                        })
-                }).catch((error) => {
-                reject(error.errorMessage);
-            });
-        });
-    }
+    abstract insert(item: T): Promise<T>;
 
-    selectOne(item: T) {
-        return item.Schema.Database.exec<T>(item.Schema.Commands.selectOne, item, 0, 0);
-    }
+    abstract selectOne(item: T);
 
-    select(item: T) {
-        return item.Schema.Database.exec<T[]>(item.Schema.Commands.select, item, 0, 0);
-    }
+    abstract select(item: T);
 
-    update(item: T) {
-        return item.Schema.Database.exec<T>(item.Schema.Commands.update, item, 0, 0);
-    }
+    abstract update(item: T);
 
-    delete(item: T) {
-        return item.Schema.Database.exec<T>(item.Schema.Commands.delete, item, 0, 0);
-    }
+    abstract delete(item: T);
 
 }

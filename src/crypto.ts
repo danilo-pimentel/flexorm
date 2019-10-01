@@ -5,7 +5,7 @@ dotenv.config({});
 const crypto = require('crypto'),
     algorithm = 'aes-256-ctr',
     password = process.env.cryptoPassword,
-    iv = process.env.iv;
+    iv = process.env.cryptoIV;
 
 export class Crypto {
 

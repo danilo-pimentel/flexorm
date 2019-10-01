@@ -1,18 +1,16 @@
 {
-  "name": "@veriz/wynk_data",
-  "version": "1.0.0",
-  "description": "Wynk data",
+  "name": "flexorm",
+  "version": "1.0.1",
+  "description": "Flex ORM",
   "main": "index.js",
   "scripts": {
     "prepublish": "npm run build",
     "build": "tsc",
-    "buildlocal": "tsc && xcopy /Q /Y /E dist\\* ..\\wynk_backend\\node_modules\\@veriz\\wynk_data\\dist && xcopy /Q /Y /E dist\\* ..\\wynk_accredited_backend\\node_modules\\@veriz\\wynk_data\\dist  && xcopy /Q /Y /E dist\\* ..\\wynk_backend_lambda\\2-layer-data\\nodejs\\node_modules\\@veriz\\wynk_data\\dist",
-    "buildlocalMac": "tsc && cp -R dist/* ../wynk_backend/node_modules/@veriz/wynk_data/dist && cp -R dist/* ../wynk_accredited_backend/node_modules/@veriz/wynk_data/dist && cp -R dist/* ../wynk_backend_lambda/2-layer-data/nodejs/node_modules/@veriz/wynk_data/dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "tslint": "tslint --force --format json --config tslint.json --out issues.json --project tsconfig.json"
   },
   "keywords": [],
-  "author": "Veriz Tecnologia",
+  "author": "Danilo Pimentel",
   "license": "ISC",
   "files": [
     "dist"
@@ -33,10 +31,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/B2CExpress/wynk_data.git"
+    "url": "git+https://github.com/danilo-pimentel/flexorm"
   },
   "bugs": {
-    "url": "https://github.com/B2CExpress/wynk_data/issues"
+    "url": "https://github.com/danilo-pimentel/flexorm/issues"
   },
-  "homepage": "https://github.com/B2CExpress/wynk_data#readme"
+  "homepage": "https://github.com/danilo-pimentel/flexorm#readme"
 }
