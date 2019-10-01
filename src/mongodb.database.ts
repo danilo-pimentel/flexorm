@@ -28,7 +28,8 @@ export class MongoDbDatabase extends Database {
     connect() {
         this.connection = new Mongoose();
         this.connection.connect("mongodb://" + this.config.userName + ":" + this.config.password + "@" +
-            this.config.server + ":" + this.config.options.port + "/" + this.config.options.database + '?authSource=admin', { useUnifiedTopology: true, useNewUrlParser: true }).then(
+            this.config.server + ":" + this.config.options.port + "/" + this.config.options.database + '?authSource=admin',
+                { useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false }).then(
             () => {
                 console.log('Successful MongoDB connection establishments');
             },
