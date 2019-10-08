@@ -26,6 +26,8 @@ export abstract class Database implements IDatabase {
 
     abstract execQuery(request: SqlCommand, modelParam: Model, pageSize: number, pageNumber: number): Promise<any>;
 
+    abstract toObjectAliased(model: Model);
+
     registerReplace(expression: string, replace: string) {
         this.commandReplaces.push({ expression: expression, replace: replace});
     }

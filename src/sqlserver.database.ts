@@ -85,6 +85,10 @@ export class SqlServerDatabase extends Database {
         });
     }
 
+    toObjectAliased(model: Model) {
+        return model.toObject();
+    }
+
     getType(type: DatabaseTypes) {
         switch (type) {
             case DatabaseTypes.STRING:

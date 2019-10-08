@@ -30,11 +30,22 @@ export class Model {
         return this.Schema.Database.exec<T>(request, this, pageSize, pageNumber);
     }
 
+    toObjectAliased() {
+        return this.Schema.Database.toObjectAliased(this);
+    }
+
     toObject() {
         const obj = {};
         Object.keys(this.Schema.Columns).forEach(prop => {
                 if (prop !== "___ColumnsToModel") {
-                    obj[prop] = this[prop];
+                    if (this.Schema.Columns[prop] && this.Schema.Columns[prop].insideChild) {
+                        obj[prop] = [];
+                        for (let child in this[prop]) {
+                            obj[prop].push(this[prop][child].toObject());
+                        }
+                    } else {
+                        obj[prop] = this[prop];
+                    }
                 }
             }
         );
@@ -44,7 +55,16 @@ export class Model {
     copyFrom(source: any) {
         Object.keys(source).forEach(prop => {
             if (this.hasOwnProperty(prop)) {
-                this[prop] = source[prop];
+                if (this.Schema.Columns[prop] && this.Schema.Columns[prop].insideChild) {
+                    this[prop] = [];
+                    for (let child in source[prop]) {
+                        let targetChild = this.Schema.Columns[prop].schemaModel.create();
+                        targetChild.copyFrom(source[prop][child]);
+                        this[prop].push(targetChild);
+                    }
+                } else {
+                    this[prop] = source[prop];
+                }
             }
         });
     }

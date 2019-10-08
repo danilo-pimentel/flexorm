@@ -52,6 +52,22 @@ export class MongoDbDatabase extends Database {
         return model;
     }
 
+    toObjectAliased(model: Model) {
+        let dbModel = (<MongoDbDatabase>model.Schema.Database).getModel(model.Schema);
+        let obj = model.toObject();
+        dbModel.translateAliases(obj);
+        Object.keys(obj).forEach(prop => {
+            if (model.Schema.Columns[prop] && model.Schema.Columns[prop].insideChild) {
+                let schema = model.Schema.Columns[prop].schemaModel.create().Schema;
+                let targetModel = (<MongoDbDatabase>model.Schema.Database).getModel(schema);
+                for (let child in obj[prop]) {
+                    targetModel.translateAliases(obj[prop][child]);
+                }
+            }
+        });
+        return obj;
+    }
+
     execQuery(request: SqlCommand, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
         return new Promise((resolve, reject) => {
             let model = this.getModel(modelParam.Schema);
@@ -106,13 +122,18 @@ export class MongoDbDatabase extends Database {
         let identityColumn;
         Object.keys(schema.Columns).forEach(prop => {
             if(prop !== '___ColumnsToModel') {
-                newSchema[schema.Columns[prop].name] = {
-                    name: schema.Columns[prop].name,
-                    alias: prop,
-                    type: this.getType(schema.Columns[prop].type)
-                };
-                if (schema.Columns[prop].identity === true) {
-                    identityColumn = newSchema[schema.Columns[prop].name]; //sssschema.Columns[prop];
+                if (schema.Columns[prop] && schema.Columns[prop].insideChild) {
+                    const insideSchemaModel = schema.Columns[prop].schemaModel.create();
+                    newSchema[schema.Columns[prop].name] = [ insideSchemaModel.Schema.ProviderSchema ];
+                } else {
+                    newSchema[schema.Columns[prop].name] = {
+                        name: schema.Columns[prop].name,
+                        alias: prop,
+                        type: this.getType(schema.Columns[prop].type)
+                    };
+                    if (schema.Columns[prop].identity === true) {
+                        identityColumn = newSchema[schema.Columns[prop].name];
+                    }
                 }
                 fieldsList += schema.Columns[prop].name + ' ';
             }

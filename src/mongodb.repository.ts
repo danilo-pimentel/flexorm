@@ -25,10 +25,10 @@ export class MongodbRepository<T extends Model> extends Repository<T> {
         return new Promise<T>((resolve, reject) => {
             item.validate().then(() => {
                 let model = (<MongoDbDatabase>item.Schema.Database).getModel(item.Schema);
-                const obj = model.translateAliases(item.toObject());
+                let aliasedObj = item.toObjectAliased();
                 const filter = {};
-                filter[item.Schema.ProviderSchema.identity.name] = obj[item.Schema.ProviderSchema.identity.name];
-                model.findOneAndUpdate(filter, obj, { upsert: true, new: true }).then((result) => {
+                filter[item.Schema.ProviderSchema.identity.name] = aliasedObj[item.Schema.ProviderSchema.identity.name];
+                model.findOneAndUpdate(filter, aliasedObj, { upsert: true, new: true }).then((result) => {
                     resolve(result.toObject());
                 }).catch((error) => {
                     reject(error);
