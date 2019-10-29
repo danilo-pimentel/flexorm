@@ -9,5 +9,6 @@ export enum DatabaseTypes {
     TEXT = 7,
     TIME = 8,
     FLOAT = 9,
-    MODEL = 10
+    MODEL = 10,
+    POINT = 11,
 }

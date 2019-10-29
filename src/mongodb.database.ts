@@ -4,6 +4,7 @@ import {Database} from "./database";
 import {SqlCommand} from "./command";
 import {Model} from "./model";
 import {Schema} from "./schema";
+import {Location} from './types/location';
 
 const mongoose = require('mongoose');
 
@@ -29,7 +30,7 @@ export class MongoDbDatabase extends Database {
         this.connection = new Mongoose();
         this.connection.connect("mongodb://" + this.config.userName + ":" + this.config.password + "@" +
             this.config.server + ":" + this.config.options.port + "/" + this.config.options.database + '?authSource=admin',
-                { useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false }).then(
+                { useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false, useCreateIndex: true }).then(
             () => {
                 console.log('Successful MongoDB connection establishments');
             },
@@ -63,6 +64,9 @@ export class MongoDbDatabase extends Database {
                 for (let child in obj[prop]) {
                     targetModel.translateAliases(obj[prop][child]);
                 }
+            } else if (model.Schema.Columns[prop] && model.Schema.Columns[prop].type == DatabaseTypes.POINT) {
+                // Transform to GeoJson format. That is formatted as longitude/latitude anyway
+                obj[prop] = { type: "Point", coordinates: [ (<Location>model[prop]).longitude, (<Location>model[prop]).latitude ] };
             }
         });
         return obj;
@@ -113,6 +117,8 @@ export class MongoDbDatabase extends Database {
                 return MongoSchema.Types.Date;
             case DatabaseTypes.BOOLEAN:
                 return MongoSchema.Types.Boolean;
+            case DatabaseTypes.POINT:
+                return { type: String, enum: ['Point'] };
         }
     }
 
@@ -120,11 +126,20 @@ export class MongoDbDatabase extends Database {
         let newSchema = {};
         let fieldsList = '';
         let identityColumn;
+        let indexes = [];
         Object.keys(schema.Columns).forEach(prop => {
             if(prop !== '___ColumnsToModel') {
                 if (schema.Columns[prop] && schema.Columns[prop].insideChild) {
                     const insideSchemaModel = schema.Columns[prop].schemaModel.create();
                     newSchema[schema.Columns[prop].name] = [ insideSchemaModel.Schema.ProviderSchema ];
+                } else if (schema.Columns[prop].type == DatabaseTypes.POINT) {
+                    newSchema[schema.Columns[prop].name] = {
+                        type: this.getType(schema.Columns[prop].type),
+                        coordinates: { type: [Number] }
+                    };
+                    let index = {};
+                    index[prop] = "2dsphere";
+                    indexes.push(index);
                 } else {
                     newSchema[schema.Columns[prop].name] = {
                         name: schema.Columns[prop].name,
@@ -150,6 +165,17 @@ export class MongoDbDatabase extends Database {
             }
             return ret;
         };
+
+        for(let index in indexes) {
+            mongoSchema.index(indexes[index]);
+        }
+
+        if (identityColumn) {
+            let index = {};
+            index[identityColumn.name] = 1;
+            mongoSchema.index(index, { unique: true });
+        }
+
         return mongoSchema;
     }
 
