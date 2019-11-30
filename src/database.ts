@@ -146,13 +146,13 @@ export abstract class Database implements IDatabase {
 
     public abstract getType(type: DatabaseTypes);
 
-    public getSchema(schema: Schema) {
+    public getSchema(schema: Schema, options: any) {
         return schema;
     }
 
-    model<T extends Model>(alias: string, tableName: string, type, schema: any, commands: any): T {
+    model<T extends Model>(alias: string, tableName: string, type, schema: any, commands: any, options: any = null): T {
         let model: T = new type();
-        model.Schema = new Schema(alias, tableName, schema, new commands(), this);
+        model.Schema = new Schema(alias, tableName, schema, new commands(), options, this);
         model.FieldsList = "";
 
         Object.keys(model.Schema.Columns).forEach(prop => {

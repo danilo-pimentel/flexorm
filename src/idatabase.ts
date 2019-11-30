@@ -10,6 +10,6 @@ export interface IDatabase {
     end();
     exec<T>(request: SqlCommand, modelParam: Model, pageSize: number, pageNumber: number): Promise<T>;
     getType(type: DatabaseTypes);
-    getSchema(schema: Schema);
+    getSchema(schema: Schema, options: any);
 
 }

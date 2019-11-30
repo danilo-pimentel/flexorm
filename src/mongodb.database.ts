@@ -79,6 +79,7 @@ export class MongoDbDatabase extends Database {
 
             model.find(findParams, (error, result) => {
                 resolve({rows: result.map((row) => row._doc), identityProperty: '_id'});
+//                resolve({rows: result.map((row) => row.toObject()), identityProperty: '_id'});
             });
         });
     }
@@ -122,7 +123,7 @@ export class MongoDbDatabase extends Database {
         }
     }
 
-    getSchema(schema: Schema) {
+    getSchema(schema: Schema, options: any) {
         let newSchema = {};
         let fieldsList = '';
         let identityColumn;
@@ -149,11 +150,26 @@ export class MongoDbDatabase extends Database {
                     if (schema.Columns[prop].identity === true) {
                         identityColumn = newSchema[schema.Columns[prop].name];
                     }
+                    if (schema.Columns[prop].uniqueIndex) {
+
+                    }
                 }
                 fieldsList += schema.Columns[prop].name + ' ';
             }
         });
-        let mongoSchema = new MongoSchema(newSchema, { strict: false });
+
+        let schemaOptions: any = {};
+        schemaOptions.strict = false;
+
+        if (options && options.noId === true) {
+            schemaOptions._id = false;
+        }
+
+        if (options && options.noVersion === true) {
+            schemaOptions.versionKey = false;
+        }
+
+        let mongoSchema = new MongoSchema(newSchema, schemaOptions);
         mongoSchema.identity = identityColumn;
         mongoSchema.set('toObject', { virtuals: true });
         mongoSchema.options.toObject.hide = fieldsList;

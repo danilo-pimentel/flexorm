@@ -3,13 +3,14 @@ import {SqlCommands} from "./commands";
 
 export class Schema {
 
-    constructor(alias: string, tableName: string, columns: any, commands: SqlCommands, database: Database) {
+    constructor(alias: string, tableName: string, columns: any, commands: SqlCommands, options: any, database: Database) {
         this.Alias = alias;
         this.TableName = tableName;
         this.Columns = columns;
         this.Commands = commands;
         this.Database = database;
-        this.ProviderSchema = database.getSchema(this);
+        this.Options = options;
+        this.ProviderSchema = database.getSchema(this, options);
     }
 
     public Alias: string;
@@ -18,6 +19,7 @@ export class Schema {
     public Commands: SqlCommands;
     public Database: Database;
     public ProviderSchema: any;
+    public Options: any;
 
     static PrepareSchemaColumns(schema: any) {
         let preparedSchema = schema;
