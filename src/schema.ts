@@ -1,9 +1,9 @@
 import {Database} from "./database";
-import {SqlCommands} from "./commands";
+import {Commands} from "./commands";
 
 export class Schema {
 
-    constructor(alias: string, tableName: string, columns: any, commands: SqlCommands, options: any, database: Database) {
+    constructor(alias: string, tableName: string, columns: any, commands: Commands, options: any, database: Database) {
         this.Alias = alias;
         this.TableName = tableName;
         this.Columns = columns;
@@ -11,12 +11,20 @@ export class Schema {
         this.Database = database;
         this.Options = options;
         this.ProviderSchema = database.getSchema(this, options);
+
+        Object.keys(columns).forEach(column => {
+            let col = columns[column];
+            if (col.insideChild === true) {
+                columns[column].Schema = col.schemaModel.create().Schema;
+            }
+        });
+
     }
 
     public Alias: string;
     public TableName: string;
     public Columns: any;
-    public Commands: SqlCommands;
+    public Commands: Commands;
     public Database: Database;
     public ProviderSchema: any;
     public Options: any;

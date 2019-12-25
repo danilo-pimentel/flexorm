@@ -1,24 +1,18 @@
-export enum SqlCommandType {
-    Table = 1,
-    StoredProcedure = 2
-}
 
 export enum ReturnType {
     Row = 1,
     RowArray = 2
 }
 
-export class SqlCommand {
+export class Command {
 
-    constructor (_command: any, _returnType: ReturnType = ReturnType.Row, _type: SqlCommandType = SqlCommandType.Table){
+    constructor (_command: any, _returnType: ReturnType = ReturnType.Row){
         this.command = _command;
-        this.type = _type;
         this.returnType = _returnType;
         this.parameters = [];
     }
 
     command: any;
-    type: SqlCommandType;
     returnType: ReturnType;
     parameters;
 

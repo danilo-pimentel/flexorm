@@ -2,9 +2,10 @@ import * as Promise from "bluebird";
 import {DatabaseTypes} from "./database.types.enum";
 import {Database} from "./database";
 import {Model} from "./model";
-import {SqlCommand, SqlCommandType} from "./command";
+import {SqlCommand, SqlCommandType} from "./sqlserver.command";
 import {TediousPromises} from "tedious-promises";
 import {CommandReplacer} from './commandReplacer';
+import {Command} from './command';
 
 let SqlType = require('tedious').TYPES;
 
@@ -36,7 +37,7 @@ export class SqlServerDatabase extends Database {
         process.exit(0);
     }
 
-    execQuery(request: SqlCommand, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
+    execQuery(request: Command, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
         return new Promise((resolve, reject) => {
             let cmd = request.command;
             cmd = cmd.replace(new RegExp('{{FIELDS_LIST}}', 'gi'), modelParam.FieldsList);
@@ -58,12 +59,12 @@ export class SqlServerDatabase extends Database {
             let findParams = "";
             let identityProperty = "";
 
-            if (request.type == SqlCommandType.StoredProcedure) {
+            if ((<SqlCommand>request).type == SqlCommandType.StoredProcedure) {
                 if (!request.parameters) {
                     request.parameters = [];
                 }
 
-                this.setSqlSPParameters(sql, request);
+                this.setSqlSPParameters(sql, (<SqlCommand>request));
             } else {
                 findParams = request.command;
                 identityProperty = this.setSqlParameters(sql, modelParam, findParams);
@@ -71,7 +72,7 @@ export class SqlServerDatabase extends Database {
 
             let exec;
 
-            if (request.type == SqlCommandType.StoredProcedure) {
+            if ((<SqlCommand>request).type == SqlCommandType.StoredProcedure) {
                 exec = sql.callProcedure();
             } else {
                 exec = sql.execute();

@@ -1,7 +1,7 @@
 import * as Promise from 'bluebird';
 import {Schema} from './schema';
 import {ValidationResult} from "./validation.result";
-import {SqlCommand} from "./command";
+import {Command} from "./command";
 import {Crypto} from './crypto';
 
 export class Model {
@@ -26,7 +26,7 @@ export class Model {
         this[field] = Crypto.decrypt(this[field + "_hash"]);
     }
 
-    exec<T>(request: SqlCommand, pageSize: number = 0, pageNumber: number = 0 ) {
+    exec<T>(request: Command, pageSize: number = 0, pageNumber: number = 0 ) {
         return this.Schema.Database.exec<T>(request, this, pageSize, pageNumber);
     }
 

@@ -4,7 +4,7 @@ import {Schema} from './schema';
 import {Model} from './model';
 import {IDatabase} from "./idatabase";
 import {DatabaseTypes} from "./database.types.enum";
-import {ReturnType, SqlCommand} from "./command";
+import {Command, ReturnType} from "./command";
 import {CommandReplacer} from './commandReplacer';
 
 let decode = require('unescape');
@@ -24,7 +24,7 @@ export abstract class Database implements IDatabase {
 
     abstract end();
 
-    abstract execQuery(request: SqlCommand, modelParam: Model, pageSize: number, pageNumber: number): Promise<any>;
+    abstract execQuery(request: Command, modelParam: Model, pageSize: number, pageNumber: number): Promise<any>;
 
     abstract toObjectAliased(model: Model);
 
@@ -32,7 +32,7 @@ export abstract class Database implements IDatabase {
         this.commandReplaces.push({ expression: expression, replace: replace});
     }
 
-    exec<T>(request: SqlCommand, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<T> {
+    exec<T>(request: Command, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<T> {
         return new Promise((resolve, reject) => {
 
             this.execQuery(request, modelParam, pageSize, pageNumber).then((result) => {
@@ -56,6 +56,26 @@ export abstract class Database implements IDatabase {
                                     row[column] = decode(row[column]);
                                 }
                                 record[colName] = JSON.parse(row[column]);
+                            } else if (schemaColumn && schemaColumn.insideChild === true) {
+                                let insideSchema = schemaColumn.Schema;
+                                let childRecords = [];
+                                row[column].forEach((childRow) => {
+                                    let childRecord = {};
+                                    Object.keys(childRow).forEach((childColumn) => {
+                                        let childColName = insideSchema.Columns.___ColumnsToModel[childColumn];
+                                        let childSchemaColumn = insideSchema.Columns[childColName];
+                                        if (childSchemaColumn && childSchemaColumn.json === true) {
+                                            if (childRow[childColumn]) {
+                                                childRow[childColumn] = decode(childRow[childColumn]);
+                                            }
+                                            childRecord[childColName] = JSON.parse(childRow[childColumn]);
+                                        } else if (childColName) {
+                                            childRecord[childColName] = childRow[childColumn];
+                                        }
+                                    });
+                                    childRecords.push(childRecord);
+                                });
+                                record[column] = childRecords;
                             } else if (schemaColumn && schemaColumn.child === true) {
 
                                 // instance child schema model

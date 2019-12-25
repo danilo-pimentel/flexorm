@@ -1,10 +1,11 @@
 import * as Promise from "bluebird";
 import {DatabaseTypes} from "./database.types.enum";
 import {Database} from "./database";
-import {SqlCommand} from "./command";
+import {Command} from "./command";
 import {Model} from "./model";
 import {Schema} from "./schema";
 import {Location} from './types/location';
+import {MongoCommand, MongoCommandType} from './mongodb.command';
 
 const mongoose = require('mongoose');
 
@@ -72,15 +73,21 @@ export class MongoDbDatabase extends Database {
         return obj;
     }
 
-    execQuery(request: SqlCommand, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
+    execQuery(request: Command, modelParam: Model, pageSize: number = 0, pageNumber: number = 0): Promise<any> {
         return new Promise((resolve, reject) => {
             let model = this.getModel(modelParam.Schema);
-            let findParams = this.setParameters(modelParam, request.command);
+            if ((<MongoCommand>request).type === MongoCommandType.Find) {
+                let findParams = this.setParameters(modelParam, request.command);
 
-            model.find(findParams, (error, result) => {
-                resolve({rows: result.map((row) => row._doc), identityProperty: '_id'});
+                model.find(findParams, (error, result) => {
+                    resolve({rows: result.map((row) => row._doc), identityProperty: '_id'});
 //                resolve({rows: result.map((row) => row.toObject()), identityProperty: '_id'});
-            });
+                });
+            } else {
+                model.aggregate(request.command, (error, result) => {
+                    resolve({rows: result, identityProperty: '_id'});
+                });
+            }
         });
     }
 
