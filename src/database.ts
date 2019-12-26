@@ -75,7 +75,9 @@ export abstract class Database implements IDatabase {
                                     });
                                     childRecords.push(childRecord);
                                 });
-                                record[column] = childRecords;
+                                if (childRecords && childRecords.length > 0) {
+                                    record[column] = childRecords;
+                                }
                             } else if (schemaColumn && schemaColumn.child === true) {
 
                                 // instance child schema model
